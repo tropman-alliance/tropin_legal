@@ -53,10 +53,10 @@ module.exports = async function handler(req, res) {
     const keyboard = [
       [{ text: "🟢 Задать вопрос юристу", web_app: { url: https://tropin-legal.vercel.app/ } }],
       [
-        { text: "💬 WhatsApp", url: WHATSAPP_URL },
-        { text: "✉️ Юрист в Telegram", url: LAWYER_TG },
+        { text: "💬 WhatsApp", url: https://wa.me/79692284269 },
+        { text: "✉️ Юрист в Telegram", url: https://t.me/V_Tropman },
       ],
-      [{ text: "🌐 Сайт", url: SITE_URL }],
+      [{ text: "🌐 Сайт", url: https://alliance-lawyer.ru/ }],
     ];
 
     await tg("sendMessage", {
