@@ -8,11 +8,11 @@
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 // ===== НАСТРОЙКИ — поменяйте ссылки под себя =====
-const MINIAPP_URL  = "https://alliance16-06.vercel.app"; // адрес вашего мини-приложения (замените на новый адрес Vercel)
-const WHATSAPP_URL = "https://wa.me/79137200792";        // WhatsApp для связи
+const MINIAPP_URL  = "https://https://tropin-legal.vercel.app/"; // адрес вашего мини-приложения (замените на новый адрес Vercel)
+const WHATSAPP_URL = "https://wa.me/79692284269";        // WhatsApp для связи
 const LAWYER_TG    = "https://t.me/V_Tropman";           // юрист в Telegram напрямую
 const SITE_URL     = "https://alliance-lawyer.ru/";      // сайт
-// const CHANNEL_URL = "https://t.me/ВАШ_КАНАЛ";         // появится канал — раскомментируйте и добавьте кнопку ниже
+const CHANNEL_URL = "https://t.me/tropin_legal";         // появится канал — раскомментируйте и добавьте кнопку ниже
 // =================================================
 
 async function tg(method, payload) {
