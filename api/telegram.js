@@ -51,7 +51,7 @@ module.exports = async function handler(req, res) {
 
     // Кнопки. Любую лишнюю строку можно удалить.
     const keyboard = [
-      [{ text: "🟢 Задать вопрос юристу", web_app: { url: MINIAPP_URL } }],
+      [{ text: "🟢 Задать вопрос юристу", web_app: { url: https://tropin-legal.vercel.app/ } }],
       [
         { text: "💬 WhatsApp", url: WHATSAPP_URL },
         { text: "✉️ Юрист в Telegram", url: LAWYER_TG },
