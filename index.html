@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0A1A33" />
+<title>Валерий Тропин — юрист для бизнеса</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    /* Палитра снята с фирменного баннера */
+    --navy-900:#0A1A33; --navy-800:#0E2547; --navy:#163461; --navy-700:#1E3F70;
+    --gold:#C9A94C; --gold-2:#E0C572; --gold-soft:#F5ECD4; --ivory:#F2E7D6;
+    --paper:#F5F2EA; --surface:#FFFFFF; --line:#E7E1D3;
+    --ink:#1A2230; --muted:#5A6678; --ok:#2E7D5B; --err:#B23B3B;
+    --serif:Georgia,"Times New Roman","PT Serif","Noto Serif",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+  .app{display:flex;flex-direction:column;height:100vh;max-width:560px;margin:0 auto;background:var(--surface)}
+
+  /* ===== Шапка ===== */
+  .header{position:relative;padding:calc(env(safe-area-inset-top,0px) + 16px) 18px 16px;
+    background:radial-gradient(130% 150% at 28% 0%, #18356A 0%, #0E2547 46%, var(--navy-900) 100%)}
+  .header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold) 16%,var(--gold-2) 50%,var(--gold) 84%,transparent)}
+  .lockup{display:flex;align-items:center;gap:14px;justify-content:center;max-width:480px;margin:0 auto}
+  .lockup .mark{flex:none;width:54px;height:54px}
+  .wm{min-width:0;text-align:left}
+  .wm .name{font-family:var(--serif);font-weight:700;color:var(--ivory);
+    font-size:clamp(18px,5.6vw,26px);letter-spacing:.05em;line-height:1;white-space:nowrap}
+  .wm .rule{height:1px;margin:7px 0 6px;background:linear-gradient(90deg,var(--gold),rgba(201,169,76,.12))}
+  .wm .sub{color:#CBB97F;text-transform:uppercase;font-weight:600;
+    font-size:clamp(8px,2.5vw,11px);letter-spacing:clamp(.03em,.55vw,.15em)}
+
+  /* ===== Полоса доверия + контакты ===== */
+  .strip{padding:10px 14px 8px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .creds{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;
+    font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .creds .gd{width:3px;height:3px;border-radius:9px;background:var(--gold)}
+  .crow{display:flex;gap:7px}
+  .crow a{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 4px;
+    border-radius:9px;border:1px solid var(--line);text-decoration:none;color:var(--navy);
+    font-size:11.5px;font-weight:600;cursor:pointer;background:var(--surface)}
+  .crow a:hover{border-color:var(--gold);background:#FCFAF4}
+  .crow a svg{width:13px;height:13px;color:var(--gold)}
+  .site{display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 6px 1px;margin-top:5px;
+    text-decoration:none;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer}
+  .site svg{width:12px;height:12px;color:var(--gold)}
+
+  /* ===== Чат ===== */
+  .chat{flex:1;overflow-y:auto;padding:18px 16px;background:var(--paper)}
+  .chat::-webkit-scrollbar{width:8px}
+  .chat::-webkit-scrollbar-thumb{background:#d8d3c6;border-radius:8px}
+  .row{display:flex;margin-bottom:10px;animation:fadein .25s ease both}
+  .row.user{justify-content:flex-end}
+  .bubble{max-width:85%;padding:11px 14px;border-radius:15px;font-size:14.5px;line-height:1.5}
+  .bubble.bot{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:5px}
+  .bubble.user{background:var(--navy);color:#fff;border-bottom-right-radius:5px}
+  .wide{max-width:94%;width:94%}
+  .typing{display:inline-flex;gap:5px;padding:12px 14px;border-radius:15px;background:var(--surface);border:1px solid var(--line)}
+  .dot{width:7px;height:7px;border-radius:99px;background:var(--gold);opacity:.55;animation:blink 1.2s infinite both}
+
+  /* ===== Карточка (оценка / расчёт / чек-лист) ===== */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;border-top-left-radius:5px;padding:16px;
+    box-shadow:0 1px 2px rgba(15,38,71,.04)}
+  .card .hd{display:flex;align-items:center;gap:9px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .card .seal{width:30px;height:30px;flex:none}
+  .card .ti{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--navy)}
+  .card .tag{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--navy);background:var(--gold-soft);padding:3px 8px;border-radius:6px;border:1px solid #C9A94C40}
+  .card p{margin:13px 0 0;font-size:14px;line-height:1.55}
+  .bignum{font-family:var(--serif);font-size:25px;font-weight:700;color:var(--navy);line-height:1.15;margin-top:2px}
+  .sect{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:15px 0 8px}
+  .norm{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+  .nchip{font-family:var(--mono);font-size:12px;font-weight:600;color:#9A7B22;background:var(--gold-soft);
+    border:1px solid #C9A94C50;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .nnote{font-size:13px;color:var(--muted);line-height:1.45;flex:1;min-width:160px}
+  .li{display:flex;gap:9px;margin-bottom:6px;font-size:13.5px;line-height:1.45}
+  .li svg{width:15px;height:15px;flex-shrink:0;margin-top:2px}
+  .disc{margin-top:15px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.45}
+
+  /* ===== Карточка заявки ===== */
+  .leadcard{position:relative;background:linear-gradient(150% 150% at 80% 0%,var(--navy) 0%,var(--navy-800) 100%);
+    border-radius:16px;border-top-left-radius:5px;padding:16px;color:#fff;overflow:hidden}
+  .leadcard .stamp{position:absolute;top:12px;right:12px;width:40px;height:40px;opacity:.9}
+  .leadcard .hd{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+  .leadcard .ck{width:25px;height:25px;border-radius:99px;background:var(--gold);display:flex;align-items:center;justify-content:center;flex:none}
+  .leadcard .ck svg{width:15px;height:15px;color:var(--navy-900)}
+  .leadcard .hd .ti{font-family:var(--serif);font-weight:700;font-size:15px}
+  .fld{display:flex;gap:10px;font-size:13px;padding:3px 0}
+  .fld .k{color:#9FB0C4;min-width:96px}.fld .v{font-weight:500}
+  .deliv{margin-top:11px;padding-top:11px;border-top:1px solid rgba(255,255,255,.14)}
+  .srow{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 0}
+  .srow .lbl{color:#CDD6E0;min-width:64px}
+  .srow .tgt{color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .srow .st{font-weight:600;white-space:nowrap}
+  .fbk{display:flex;gap:8px;margin-top:8px}
+  .fbk a{flex:1;text-align:center;padding:9px;border-radius:9px;background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;font-size:12.5px;font-weight:600;cursor:pointer}
+
+  /* ===== Управление ===== */
+  .controls{border-top:1px solid var(--line);background:var(--surface);padding:12px;
+    padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}
+  .cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .cat{display:flex;align-items:center;gap:9px;flex:1 1 calc(50% - 8px);min-width:150px;min-height:46px;
+    padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;
+    text-align:left;color:var(--navy);font-size:13px;font-weight:500}
+  .cat:hover{border-color:var(--gold);background:#FCFAF4}
+  .cat svg{width:16px;height:16px;color:var(--gold);flex-shrink:0}
+  .form{display:flex;flex-direction:column;gap:9px;margin-bottom:10px}
+  .fl{display:flex;flex-direction:column;gap:4px}
+  .fl label{font-size:12px;font-weight:600;color:var(--muted)}
+  .fl select,.fl input{padding:11px;border-radius:10px;border:1px solid var(--line);font-size:14px;
+    font-family:inherit;color:var(--ink);background:#fff;outline:none;width:100%;min-height:44px}
+  .fl select:focus,.fl input:focus{border-color:var(--gold)}
+  .calc-actions{display:flex;gap:8px}
+  .quick{display:flex;gap:8px;margin-bottom:12px}
+  .qbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:11px 8px;
+    border-radius:12px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid}
+  .qbtn svg{width:16px;height:16px;flex-shrink:0}
+  .qbook{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .qbook svg{color:var(--gold-2)}
+  .qbook:hover{background:var(--navy-700)}
+  .qcalc{background:var(--gold-soft);color:var(--navy);border-color:#C9A94C70}
+  .qcalc svg{color:#9A7B22}
+  .qcalc:hover{background:#F1E5C9}
+  .btns{display:flex;gap:8px}
+  .cta{flex:1;min-height:46px;padding:12px;border-radius:12px;border:none;background:var(--navy);color:#fff;
+    font-weight:600;font-size:14px;cursor:pointer}
+  .cta:hover{background:var(--navy-700)}
+  .cta2{min-height:46px;padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);
+    color:var(--navy);font-weight:600;font-size:14px;cursor:pointer}
+  .cta2:hover{border-color:var(--gold)}
+  .full{width:100%}
+  .inrow{display:flex;gap:8px;align-items:flex-end}
+  textarea{flex:1;resize:none;max-height:120px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+    font-size:14px;font-family:inherit;color:var(--ink);outline:none;line-height:1.4}
+  textarea:focus{border-color:var(--gold)}
+  textarea:disabled{background:var(--paper)}
+  .send{width:46px;height:46px;border-radius:12px;border:none;background:var(--navy);color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+  .send:hover{background:var(--navy-700)}
+  .send:disabled{background:#C7CCD8;cursor:default}
+  .send svg{width:18px;height:18px}
+
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:.9}}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.row,.dot{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="lockup">
+      <span class="mark" id="brand-mark"></span>
+      <div class="wm">
+        <div class="name">ВАЛЕРИЙ ТРОПИН</div>
+        <div class="rule"></div>
+        <div class="sub">Юрист для бизнеса · 25 лет практики</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip" id="strip"></div>
+  <div class="chat" id="chat"></div>
+  <div class="controls" id="controls"></div>
+</div>
+
+<script>
+/* ===================== Конфиг (контакты) ===================== */
+const FIRM = {
+  lawyer:"Валерий Тропин",
+  site:"https://alliance-lawyer.ru/",
+  cities:[
+    {city:"Краснодар", phoneRaw:"79137200792", whatsapp:"https://wa.me/79137200792", telegram:"https://t.me/V_Tropman"},
+  ],
+  leadEmail:"tropman@gmail.com",   // ручной fallback (mailto)
+  leadWaRaw:"77772351985",         // ручной fallback (WhatsApp)
+};
+
+/* ===================== Разделы ===================== */
+const CATS = [
+  {id:"block", label:"Блокировки счёта (115-ФЗ / 161-ФЗ)", ic:"shield",
+   q:"Опишите блокировку: какой банк, когда заблокировали счёт или приостановили операцию, какие документы запросил банк, связано ли это с переводами или P2P?"},
+
+  {id:"litigation", label:"Споры и суды", ic:"gavel", subs:[
+    {id:"lit_case", label:"Описать спор юристу",
+     q:"Опишите спор: суд общей юрисдикции или арбитражный, на какой стадии дело, в чём суть и какая ваша роль (истец, ответчик или третье лицо)?"},
+    {id:"lit_debt", label:"Взыскание задолженности",
+     q:"Опишите долг: кто должник, сумма, на основании чего возникла задолженность (договор, акт, расписка), есть ли просрочка и претензия?"},
+    {id:"lit_leasing", label:"Лизинговые споры",
+     q:"Опишите лизинговый спор: предмет лизинга, лизингодатель, в чём проблема (изъятие предмета, расчёт сальдо встречных обязательств, качество, просрочка) и сумма?"},
+    {id:"lit_docs", label:"Чек-лист: документы для суда", intro:"Базовый набор для подачи иска. Точный список зависит от категории дела.",
+     checklist:["Исковое заявление с копиями по числу участников дела","Документ об уплате госпошлины (или ходатайство о льготе/отсрочке)","Доверенность или документы о полномочиях представителя","Договор, расписка или иные документы, на которых основаны требования","Доказательства: переписка, акты, фото, выписки, заключения экспертиз","Расчёт суммы иска, если требование денежное","Подтверждение досудебного порядка (претензия и ответ), если он обязателен","Копии паспортов и реквизитов сторон, выписки ЕГРЮЛ или ЕГРИП для организаций"]},
+    {id:"lit_dtp", label:"Чек-лист: действия при ДТП", intro:"Что сделать на месте и после, чтобы защитить свои права.",
+     checklist:["Остановиться, включить аварийку, выставить знак; не покидать место ДТП","Проверить, есть ли пострадавшие; при необходимости вызвать скорую (112)","Вызвать ГИБДД или оформить европротокол, если условия позволяют","Сфотографировать место, расположение машин, повреждения, номера, знаки и разметку","Записать данные второго участника: ФИО, авто, полис ОСАГО, контакты","Найти свидетелей и записать их контакты; сохранить запись видеорегистратора","Не признавать вину письменно до консультации; проверить, что записано в документах","Сообщить страховщику в установленный срок и подать заявление о выплате"]},
+    {id:"lit_contract", label:"Чек-лист: проверка договора", intro:"На что смотреть перед подписанием.",
+     checklist:["Стороны и их полномочия: кто подписывает и есть ли доверенность","Предмет договора — конкретно, без размытых формулировок","Цена, порядок и сроки оплаты, что входит в стоимость","Сроки исполнения и порядок приёмки (акты)","Ответственность сторон: неустойка, штрафы, пени и их размеры","Порядок изменения и расторжения, последствия одностороннего отказа","Гарантии, качество и порядок устранения недостатков","Разрешение споров: претензионный порядок, подсудность, применимое право","Реквизиты и контакты сторон; все приложения на месте и подписаны"]},
+  ]},
+
+  {id:"business", label:"Бизнесу", ic:"briefcase", subs:[
+    {id:"biz_support", label:"Юридическое сопровождение",
+     q:"Расскажите о компании и задачах: сфера деятельности, что нужно сопровождать (договоры, контрагенты, претензии, текущие вопросы) и есть ли штатный юрист?"},
+    {id:"biz_contract", label:"Договоры: составление и проверка",
+     q:"Какой договор нужен или какой проверить, между какими сторонами и какие условия важно учесть: предмет, сумма, сроки, ответственность?"},
+    {id:"biz_corp", label:"Корпоративные споры",
+     q:"Опишите корпоративный конфликт: участники и доли, в чём спор (выход участника, оспаривание сделок или решений, тупик в управлении, исключение участника) и чего хотите добиться?"},
+    {id:"biz_tax", label:"Налоговые споры",
+     q:"Опишите налоговый вопрос: какой налог или проверка, есть ли акт или решение инспекции, доначисления и их сумма, на какой стадии (возражения, апелляция, суд)?"},
+    {id:"biz_founding", label:"Учредительные документы",
+     q:"Что нужно: разработка устава или внесение изменений (адрес, директор, виды деятельности, доли, уставный капитал), регистрация в ФНС? Опишите ситуацию."},
+    {id:"biz_internal", label:"Внутренние документы и кадры",
+     q:"Какие документы нужны бизнесу: положения, регламенты, приказы, политики, должностные инструкции, кадровые документы, охрана труда? Опишите компанию и цель."},
+    {id:"biz_bankr", label:"Банкротство компании",
+     q:"Расскажите о ситуации с долгами компании: общая сумма задолженности и перед кем, есть ли просрочки, имущество, текущая выручка, идут ли иски?"},
+    {id:"biz_claim", label:"Претензии и иски",
+     q:"Опишите конфликт: к кому претензия или иск, в чём нарушение, сумма требований, пытались ли решить досудебно?"},
+  ]},
+
+  {id:"individuals", label:"Частным клиентам", ic:"user", subs:[
+    {id:"ind_labor", label:"Трудовые споры",
+     q:"Опишите трудовой спор: что произошло (увольнение, невыплата зарплаты, оформление, конфликт), вы работник или работодатель и какой результат нужен?"},
+    {id:"ind_family", label:"Семейное право",
+     q:"Опишите ситуацию: развод, раздел имущества, алименты, споры о детях или брачный договор? Что произошло и чего хотите добиться?"},
+    {id:"ind_housing", label:"Жилищные споры",
+     q:"Опишите жилищный спор: что произошло (выселение, раздел, соседи, споры с УК/ЖКХ, залив, право собственности), кто стороны и какой результат нужен?"},
+    {id:"ind_auto", label:"Автоюрист",
+     q:"Опишите ситуацию с авто: ДТП, спор со страховой (ОСАГО/КАСКО), лишение прав, претензии по ремонту или покупке? Что произошло и чего хотите добиться?"},
+    {id:"ind_civil", label:"Гражданские споры",
+     q:"Расскажите суть спора: что произошло, между кем, есть ли договор, какая сумма или какой результат вам нужен?"},
+    {id:"ind_bankr", label:"Банкротство физлиц",
+     q:"Расскажите о ситуации с долгами: общая сумма задолженности и перед кем (банки, МФО), есть ли просрочки, имущество или текущие доходы?"},
+    {id:"ind_contract", label:"Договоры",
+     q:"Какой договор нужен или какой проверить, между какими сторонами и какие условия важно учесть: предмет, сумма, сроки, ответственность?"},
+    {id:"ind_claim", label:"Претензии и иски",
+     q:"Опишите конфликт: к кому претензия или иск, в чём нарушение, сумма требований, пытались ли решить досудебно?"},
+  ]},
+];
+
+/* ===================== Telegram WebApp ===================== */
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+let TGUSER = {first:"", name:"", username:"", id:""};
+if(tg){
+  try{ tg.ready(); tg.expand(); }catch(e){}
+  try{ tg.setHeaderColor("#0A1A33"); tg.setBackgroundColor("#F5F2EA"); }catch(e){}
+  const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
+  if(u){
+    TGUSER.first = u.first_name || "";
+    TGUSER.name = [u.first_name,u.last_name].filter(Boolean).join(" ");
+    TGUSER.username = u.username ? "@"+u.username : "";
+    TGUSER.id = u.id || "";
+  }
+  if(tg.BackButton){ try{ tg.BackButton.onClick(handleBack); }catch(e){} }
+}
+function haptic(kind){
+  try{
+    if(!tg || !tg.HapticFeedback) return;
+    if(kind==="select") tg.HapticFeedback.selectionChanged();
+    else if(kind==="success") tg.HapticFeedback.notificationOccurred("success");
+    else if(kind==="error") tg.HapticFeedback.notificationOccurred("error");
+    else tg.HapticFeedback.impactOccurred("light");
+  }catch(e){}
+}
+function openExternal(url){
+  if(tg){
+    if(url.includes("t.me")) { tg.openTelegramLink(url); return; }
+    tg.openLink(url); return;
+  }
+  window.open(url,"_blank");
+}
+
+/* ===================== DOM-хелпер ===================== */
+function el(tag, attrs, ...kids){
+  const e=document.createElement(tag); attrs=attrs||{};
+  for(const k in attrs){
+    if(k==="style") Object.assign(e.style,attrs[k]);
+    else if(k==="class") e.className=attrs[k];
+    else if(k==="html") e.innerHTML=attrs[k];
+    else if(k.startsWith("on")) e.addEventListener(k.slice(2).toLowerCase(),attrs[k]);
+    else e.setAttribute(k,attrs[k]);
+  }
+  for(const kid of kids){ if(kid==null) continue; e.append(kid.nodeType?kid:document.createTextNode(kid)); }
+  return e;
+}
+const ICONS = {
+  shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/>',
+  file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  bank:'<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+  landmark:'<line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/>',
+  send:'<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+  phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  chat:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+  spark:'<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+  chevron:'<path d="m9 18 6-6-6-6"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  gavel:'<path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>',
+  briefcase:'<rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  arrowleft:'<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  calc:'<rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>',
+  calendar:'<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  percent:'<line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+  coins:'<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
+  building:'<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/>',
+  receipt:'<path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2Z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+};
+function svg(name){
+  const s=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||""}</svg>`;
+  const wrap=el("span",{class:"ic"}); wrap.innerHTML=s;
+  return wrap.firstChild;
+}
+
+/* ===================== Фирменная монограмма «ВТ» ===================== */
+/* HEX-значения заданы напрямую (а не CSS-переменными) — чтобы знак корректно
+   отрисовывался в вебвью Telegram на iOS, где var() в атрибутах SVG не работает. */
+let _mgId=0;
+function monogram(opts){
+  opts=opts||{};
+  const solid = opts.fill !== "none";
+  const fill = solid ? (opts.fill || "#163461") : "none";  // заливка круга
+  const ring = opts.ring || "#C9A94C";                     // золотое кольцо
+  const letters = opts.letters || "#F2E7D6";               // буквы ВТ
+  const gid = "mg"+(++_mgId);
+  const circleFill = solid ? `url(#${gid})` : "none";
+  const defs = solid ? `<defs><radialGradient id="${gid}" cx="34%" cy="26%" r="80%">
+      <stop offset="0%" stop-color="#23487F"/><stop offset="58%" stop-color="${fill}"/>
+      <stop offset="100%" stop-color="${fill}"/></radialGradient></defs>` : "";
+  const s=`<svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Валерий Тропин">
+    ${defs}
+    <circle cx="32" cy="32" r="30" fill="${circleFill}"/>
+    <circle cx="32" cy="32" r="27.4" fill="none" stroke="${ring}" stroke-width="1.7"/>
+    <text x="32" y="34" text-anchor="middle" dominant-baseline="central"
+      font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="27" letter-spacing="-1"
+      fill="${letters}">ВТ</text>
+  </svg>`;
+  const wrap=el("span"); wrap.style.display="block"; wrap.style.width="100%"; wrap.style.height="100%"; wrap.innerHTML=s;
+  return wrap.firstChild;
+}
+document.getElementById("brand-mark").append(monogram());
+
+/* ===================== Состояние ===================== */
+const chat = document.getElementById("chat");
+const controls = document.getElementById("controls");
+let step="greeting", curCat=null, curParent=null;
+let pending={category:"",description:"",assessment:null,name:"",contact:""};
+
+function scroll(){ chat.scrollTop=chat.scrollHeight; }
+function botText(t){ const r=el("div",{class:"row"}, el("div",{class:"bubble bot"},t)); chat.append(r); scroll(); return r; }
+function userText(t){ const r=el("div",{class:"row user"}, el("div",{class:"bubble user"},t)); chat.append(r); scroll(); }
+function addTyping(){
+  const dots=el("div",{class:"typing"}); for(let i=0;i<3;i++){const d=el("span",{class:"dot"}); d.style.animationDelay=(i*0.18)+"s"; dots.append(d);}
+  const r=el("div",{class:"row"},dots); chat.append(r); scroll(); return r;
+}
+const leaveContact = ()=>{ haptic(); botText("Как вас зовут?"); setControls("contactName"); };
+
+/* ===================== Контакты-строка ===================== */
+(function buildStrip(){
+  const strip=document.getElementById("strip");
+  strip.append(el("div",{class:"creds"},
+    el("span",{},"Бесплатная предоценка"), el("span",{class:"gd"}),
+    el("span",{},"Анонимно"), el("span",{class:"gd"}),
+    el("span",{},"Без звонков")));
+  const mkBtn=(ic,lbl,href,isTel)=>{
+    const a=el("a",{onclick:(e)=>{e.preventDefault(); haptic(); if(isTel){location.href=href;} else openExternal(href);}}, svg(ic), el("span",{},lbl));
+    a.href=href; return a;
+  };
+  FIRM.cities.forEach(c=>{
+    const row=el("div",{class:"crow"});
+    row.append(mkBtn("phone","Звонок","tel:"+c.phoneRaw,true));
+    row.append(mkBtn("chat","WhatsApp",c.whatsapp,false));
+    row.append(mkBtn("send","Telegram",c.telegram,false));
+    strip.append(row);
+  });
+  const site=el("a",{class:"site",onclick:(e)=>{e.preventDefault(); haptic(); openExternal(FIRM.site);}}, svg("globe"), el("span",{},"alliance-lawyer.ru"));
+  site.href=FIRM.site; strip.append(site);
+})();
+
+/* ===================== Карточка оценки ===================== */
+function assessmentCard(d){
+  const card=el("div",{class:"card"});
+  const seal=el("div",{class:"seal"}); seal.append(monogram());
+  card.append(el("div",{class:"hd"}, seal, el("div",{class:"ti"},"Предварительная оценка"), el("span",{class:"tag"},"AI")));
+  if(d.summary) card.append(el("p",{},d.summary));
+  if(d.norms && d.norms.length){
+    card.append(el("div",{class:"sect"},"Применимые нормы"));
+    d.norms.forEach(n=>{
+      const row=el("div",{class:"norm"});
+      if(n.ref) row.append(el("span",{class:"nchip"},n.ref));
+      if(n.note) row.append(el("span",{class:"nnote"},n.note));
+      card.append(row);
+    });
+  }
+  if(d.actions && d.actions.length){
+    card.append(el("div",{class:"sect"},"Что можно сделать"));
+    d.actions.forEach(a=>{const li=el("div",{class:"li"}); const ic=svg("chevron"); ic.style.color="var(--gold)"; li.append(ic, el("span",{},a)); card.append(li);});
+  }
+  if(d.documents && d.documents.length){
+    card.append(el("div",{class:"sect"},"Что подготовить"));
+    d.documents.forEach(x=>{const li=el("div",{class:"li"}); const ic=svg("file"); ic.style.color="var(--muted)"; li.append(ic, el("span",{},x)); card.append(li);});
+  }
+  card.append(el("div",{class:"disc"}, (d.note?d.note+" ":"")+"Это предварительная оценка ИИ, а не юридическая консультация. Точный анализ — после изучения документов."));
+  const r=el("div",{class:"row"}, el("div",{class:"wide"},card)); chat.append(r); scroll();
+}
+
+/* ===================== Запрос оценки к бэкенду ===================== */
+function normalize(p){
+  const arr=v=>Array.isArray(v)?v.filter(Boolean):[];
+  return {
+    summary: typeof p.summary==="string"?p.summary:"",
+    norms: arr(p.norms).map(n=> typeof n==="string"?{ref:"",note:n}:{ref:n.ref||"",note:n.note||""}),
+    actions: arr(p.actions).map(String),
+    documents: arr(p.documents).map(String),
+    note: typeof p.note==="string"?p.note:"",
+  };
+}
+async function getAssessment(category, description){
+  try{
+    const res=await fetch("/api/assess",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category,description})});
+    if(!res.ok) return {ok:false};
+    const data=await res.json();
+    const text=(data.text||"").trim();
+    const clean=text.replace(/```json/gi,"").replace(/```/g,"").trim();
+    try{ return {ok:true,data:normalize(JSON.parse(clean))}; }
+    catch{ return {ok:true,data:{summary:text,norms:[],actions:[],documents:[],note:""}}; }
+  }catch{ return {ok:false}; }
+}
+async function runAssessment(label, description){
+  setControls("assessing");
+  const t=addTyping();
+  const r=await getAssessment(label,description);
+  t.remove();
+  if(!r.ok){
+    botText("Сформировать предварительную оценку сейчас не получилось. Оставьте контакт — Валерий разберёт вашу ситуацию лично.");
+    setControls("postAssess"); return;
+  }
+  pending.category=label; pending.description=description; pending.assessment=r.data;
+  assessmentCard(r.data);
+  haptic("success");
+  botText("Нужен детальный разбор по вашим документам? Оставьте контакт — Валерий свяжется с вами.");
+  setControls("postAssess");
+}
+
+/* ===================== Доставка заявки ===================== */
+function mailtoLink(l){
+  const body=`Имя: ${l.name||"—"}\nКонтакт: ${l.contact}\nНаправление: ${l.category}\nСитуация: ${l.description}`;
+  return `mailto:${FIRM.leadEmail}?subject=${encodeURIComponent("Новая заявка — "+l.category)}&body=${encodeURIComponent(body)}`;
+}
+function waLink(l){
+  const text=`Новая заявка — ${l.category}\nИмя: ${l.name||"—"}\nКонтакт: ${l.contact}\nСитуация: ${l.description}`;
+  return `https://wa.me/${FIRM.leadWaRaw}?text=${encodeURIComponent(text)}`;
+}
+function statusRow(iconName, label, target, state){
+  const map={sending:{c:"var(--muted)",t:"отправка…"},ok:{c:"#7BE0B0",t:"доставлено"},error:{c:"#F2A6A6",t:"не доставлено"},skipped:{c:"var(--muted)",t:"канал не настроен"}};
+  const s=map[state]||map.skipped;
+  const row=el("div",{class:"srow"});
+  const ic=svg(iconName); ic.style.width="14px"; ic.style.height="14px"; ic.style.color="#9FB0C4";
+  row.append(ic, el("span",{class:"lbl"},label), el("span",{class:"tgt"},target), el("span",{class:"st",style:{color:s.c}},s.t));
+  return row;
+}
+function leadCardBase(lead){
+  const card=el("div",{class:"leadcard"});
+  const stamp=el("div",{class:"stamp"}); stamp.append(monogram({fill:"none",ring:"var(--gold-2)",letters:"var(--gold-2)"}));
+  card.append(stamp);
+  const ck=el("div",{class:"ck"}); ck.append(svg("check"));
+  card.append(el("div",{class:"hd"}, ck, el("div",{class:"ti"},"Обращение зарегистрировано")));
+  const f=(k,v)=> el("div",{class:"fld"}, el("span",{class:"k"},k), el("span",{class:"v"},v));
+  card.append(f("Направление",lead.category), f("Имя",lead.name||"—"), f("Контакт",lead.contact));
+  return card;
+}
+function leadCard(lead, statuses){
+  const card=leadCardBase(lead);
+  const deliv=el("div",{class:"deliv"});
+  deliv.append(statusRow("file","Почта", FIRM.lawyer, statuses.email));
+  deliv.append(statusRow("send","Telegram", FIRM.lawyer, statuses.telegram));
+  card.append(deliv);
+  if(statuses.email!=="ok" && statuses.telegram!=="ok"){
+    const fbk=el("div",{class:"fbk"});
+    const a1=el("a",{onclick:(e)=>{e.preventDefault(); openExternal(mailtoLink(lead));}},"Почта"); a1.href=mailtoLink(lead);
+    const a2=el("a",{onclick:(e)=>{e.preventDefault(); openExternal(waLink(lead));}},"WhatsApp"); a2.href=waLink(lead);
+    card.append(el("div",{class:"deliv"}, el("div",{style:{fontSize:"11px",color:"#9FB0C4",marginBottom:"7px"}},"Продублировать вручную:"), fbk));
+    fbk.append(a1,a2);
+  }
+  const r=el("div",{class:"row"}, el("div",{class:"wide"},card)); chat.append(r); scroll();
+}
+function leadCardSending(lead){
+  const card=leadCardBase(lead);
+  const deliv=el("div",{class:"deliv"});
+  deliv.append(statusRow("file","Почта","отправка…","sending"));
+  deliv.append(statusRow("send","Telegram","отправка…","sending"));
+  card.append(deliv);
+  const r=el("div",{class:"row"}, el("div",{class:"wide"},card)); chat.append(r); scroll();
+  return r;
+}
+async function sendLead(lead){
+  try{
+    const res=await fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(lead)});
+    if(!res.ok) return {email:"error",telegram:"error"};
+    return await res.json();
+  }catch{ return {email:"error",telegram:"error"}; }
+}
+
+/* ===================== Поток ===================== */
+function chooseCategory(c){
+  haptic("select");
+  if(c.subs){
+    userText(c.label); curParent=c;
+    botText("Выберите направление в разделе «"+c.label+"»:");
+    setControls("subs"); return;
+  }
+  userText(c.label); curCat=c; curParent=null; pending.category=c.label;
+  botText(c.q); setControls("intake");
+}
+function chooseSub(sub){
+  haptic("select");
+  userText(sub.label);
+  const full=(curParent?curParent.label+" — ":"")+sub.label;
+  pending.category=full;
+  if(sub.checklist){
+    checklistCard(sub.label, sub.intro||"", sub.checklist);
+    pending.description="Запрос чек-листа: "+sub.label;
+    botText("Нужна помощь по этому вопросу? Оставьте контакт — Валерий подскажет по вашей ситуации.");
+    setControls("postChecklist"); return;
+  }
+  curCat={id:sub.id,label:full};
+  botText(sub.q); setControls("intake");
+}
+function getDraft(){ const ta=controls.querySelector("textarea"); return ta?ta.value.trim():""; }
+function onSend(){
+  const v=getDraft(); if(!v) return;
+  userText(v); haptic();
+  if(step==="greeting"||step==="subs"||step==="calcMenu"){
+    const lbl=(step==="subs"&&curParent)?curParent.label:"Обращение";
+    curCat={id:"other",label:lbl};
+    runAssessment(step==="subs"?("Раздел: "+lbl):"Обращение (определи по описанию)",v);
+  }
+  else if(step==="intake"){ runAssessment((curCat&&curCat.label)||"Обращение",v); }
+  else if(step==="bookTime"){ pending.bookTime=v; botText("Коротко опишите вопрос для консультации (или отправьте «—», если расскажете на встрече)."); setControls("bookTopic"); }
+  else if(step==="bookTopic"){ pending.bookTopic=(v==="—"||v==="-")?"расскажет на консультации":v; pending.description="Запись на онлайн-консультацию. Удобное время: "+(pending.bookTime||"—")+". Вопрос: "+pending.bookTopic; botText("Как вас зовут?"); setControls("contactName"); }
+  else if(step==="contactName"){ pending.name=v; botText("Оставьте телефон, Telegram или email для связи."); setControls("contactInfo"); }
+  else if(step==="contactInfo"){ finalize(v); }
+}
+async function finalize(contact){
+  const lead={
+    category: pending.category||(curCat&&curCat.label)||"Обращение",
+    description: pending.description, name: pending.name, contact,
+    assessment: pending.assessment,
+    tgUser: TGUSER.username, tgUserId: TGUSER.id,
+    createdAt: new Date().toISOString(),
+  };
+  botText(`Спасибо, ${pending.name||"ваше обращение принято"}! Передаю обращение Валерию — он свяжется с вами в ближайшее время.`);
+  setControls("done");
+  const placeholderCard = leadCardSending(lead);
+  const st = await sendLead(lead);
+  placeholderCard.remove();
+  leadCard(lead, {email: st.email||"error", telegram: st.telegram||"error"});
+  haptic("success");
+}
+function reset(){
+  haptic();
+  chat.innerHTML=""; step="greeting"; curCat=null; curParent=null;
+  pending={category:"",description:"",assessment:null,name:"",contact:""};
+  greet(); setControls("greeting");
+}
+
+/* ===================== Telegram BackButton ===================== */
+function handleBack(){
+  haptic();
+  if(step==="subs") return setControls("greeting");
+  if(step==="calcMenu") return setControls("greeting");
+  if(["calcGosp","calcArb","calcAlim","calcBankr","calcPeni"].includes(step)) return setControls("calcMenu");
+  if(step==="intake") return curParent?setControls("subs"):setControls("greeting");
+  if(["bookTime","bookTopic","contactName","contactInfo","postAssess","postChecklist"].includes(step)) return setControls("greeting");
+  return setControls("greeting");
+}
+function syncBackButton(){
+  if(!tg || !tg.BackButton) return;
+  try{ (step==="greeting"||step==="done") ? tg.BackButton.hide() : tg.BackButton.show(); }catch(e){}
+}
+
+/* ===================== Управление по шагам ===================== */
+function inputRow(placeholder, prefill, enabled){
+  const ta=el("textarea",{rows:"1",placeholder:placeholder, onkeydown:(e)=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault(); onSend();} }});
+  if(prefill) ta.value=prefill;
+  if(!enabled) ta.disabled=true;
+  const btn=el("button",{class:"send",onclick:onSend,"aria-label":"Отправить"}); btn.append(svg("send"));
+  const update=()=>{ btn.disabled = !enabled || !ta.value.trim(); };
+  ta.addEventListener("input",update); update();
+  setTimeout(()=>{ if(enabled) ta.focus(); },50);
+  return el("div",{class:"inrow"}, ta, btn);
+}
+
+/* ===================== Калькуляторы ===================== */
+function fmt(n){ return Math.round(n).toLocaleString("ru-RU")+" ₽"; }
+function val(id){ const e=document.getElementById(id); return e?e.value:""; }
+function num(id){ return parseFloat((val(id)||"").replace(/\s/g,"").replace(",",".")); }
+
+function calcCard(title, mainLabel, mainValue, ref, note, extra){
+  const card=el("div",{class:"card"});
+  const sealWrap=el("div",{class:"seal",style:{display:"flex",alignItems:"center",justifyContent:"center",color:"var(--gold)"}});
+  sealWrap.append(svg("calc"));
+  card.append(el("div",{class:"hd"}, sealWrap, el("div",{class:"ti"},title), el("span",{class:"tag"},"расчёт")));
+  card.append(el("div",{style:{margin:"13px 0 2px",fontSize:"13px",color:"var(--muted)"}}, mainLabel));
+  card.append(el("div",{class:"bignum"}, mainValue));
+  if(extra){ card.append(el("div",{style:{marginTop:"7px",fontSize:"12.5px",color:"var(--muted)"}}, extra)); }
+  if(ref){ const r=el("div",{style:{marginTop:"10px"}}); r.append(el("span",{class:"nchip"},ref)); card.append(r); }
+  card.append(el("div",{class:"disc"}, note));
+  const row=el("div",{class:"row"}, el("div",{class:"wide"},card)); chat.append(row); scroll();
+  haptic("success");
+}
+function openCalcMenu(){ haptic("select"); userText("Калькуляторы"); botText("Бесплатные калькуляторы. Что посчитать?"); setControls("calcMenu"); }
+function openCalc(kind){
+  haptic("select");
+  if(kind==="gosp"){ userText("Госпошлина (общей юрисдикции)"); pending.category="Госпошлина СОЮ (калькулятор)"; pending.description="Вопрос по госпошлине"; botText("Калькулятор госпошлины для судов общей юрисдикции и мировых судей. Заполните поля и нажмите «Рассчитать»."); setControls("calcGosp"); }
+  else if(kind==="arb"){ userText("Госпошлина (арбитраж)"); pending.category="Госпошлина арбитраж (калькулятор)"; pending.description="Вопрос по госпошлине в арбитраж"; botText("Калькулятор госпошлины для арбитражных судов (ст. 333.21 НК РФ). Заполните поля и нажмите «Рассчитать»."); setControls("calcArb"); }
+  else if(kind==="peni"){ userText("Неустойка и пени"); pending.category="Неустойка (калькулятор)"; pending.description="Вопрос по неустойке"; botText("Калькулятор договорной неустойки (пени). Укажите сумму, ставку и период просрочки."); setControls("calcPeni"); }
+  else if(kind==="bankr"){ userText("Пройду ли банкротство"); pending.category="Банкротство — проверка"; pending.description="Вопрос по банкротству"; botText("Быстрая проверка, какая процедура банкротства вам подходит. Ответьте на несколько вопросов и нажмите «Проверить»."); setControls("calcBankr"); }
+  else { userText("Алименты"); pending.category="Алименты (калькулятор)"; pending.description="Вопрос по алиментам"; botText("Калькулятор алиментов по долям от дохода (ст. 81 СК РФ). Заполните поля и нажмите «Рассчитать»."); setControls("calcAlim"); }
+}
+
+/* Госпошлина: суды общей юрисдикции (ст. 333.19 НК РФ, ред. с 09.2024) */
+function gpImushch(x){
+  if(x<=100000) return 4000;
+  if(x<=300000) return 4000 + 0.03*(x-100000);
+  if(x<=500000) return 10000 + 0.025*(x-300000);
+  if(x<=1000000) return 15000 + 0.02*(x-500000);
+  if(x<=3000000) return 25000 + 0.01*(x-1000000);
+  if(x<=8000000) return 45000 + 0.007*(x-3000000);
+  if(x<=24000000) return 80000 + 0.0035*(x-8000000);
+  if(x<=50000000) return 136000 + 0.003*(x-24000000);
+  if(x<=100000000) return 214000 + 0.002*(x-50000000);
+  return Math.min(314000 + 0.0015*(x-100000000), 900000);
+}
+function gpSoyFormula(x){
+  if(x<=100000) return "Фиксированно: 4 000 ₽";
+  if(x<=300000) return "4 000 ₽ + 3% от суммы свыше 100 000 ₽";
+  if(x<=500000) return "10 000 ₽ + 2,5% от суммы свыше 300 000 ₽";
+  if(x<=1000000) return "15 000 ₽ + 2% от суммы свыше 500 000 ₽";
+  if(x<=3000000) return "25 000 ₽ + 1% от суммы свыше 1 000 000 ₽";
+  if(x<=8000000) return "45 000 ₽ + 0,7% от суммы свыше 3 000 000 ₽";
+  if(x<=24000000) return "80 000 ₽ + 0,35% от суммы свыше 8 000 000 ₽";
+  if(x<=50000000) return "136 000 ₽ + 0,3% от суммы свыше 24 000 000 ₽";
+  if(x<=100000000) return "214 000 ₽ + 0,2% от суммы свыше 50 000 000 ₽";
+  return "314 000 ₽ + 0,15% свыше 100 000 000 ₽ (не более 900 000 ₽)";
+}
+function computeGosp(){
+  const type=val("gp-type");
+  let gp=0, line="", extra="";
+  if(type==="imushch"||type==="prikaz"){
+    const x=num("gp-sum");
+    if(!x||x<=0){ botText("Укажите цену иска числом больше нуля."); return; }
+    const base=gpImushch(x);
+    gp = type==="prikaz" ? Math.round(base*0.5) : Math.round(base);
+    line = (type==="prikaz"?"Судебный приказ":"Имущественный иск")+", цена иска "+fmt(x);
+    extra = (type==="prikaz"?"50% от госпошлины по иску · ":"")+gpSoyFormula(x);
+  } else if(type==="neimushch"){
+    const who=val("gp-istec");
+    gp = who==="org"?20000:3000;
+    line = "Неимущественный иск, "+(who==="org"?"организация":"физлицо");
+    extra = "Фиксированная ставка";
+  } else { gp=5000; line="Расторжение брака"; extra="Фиксированная ставка"; }
+  pending.description = line+" → госпошлина ≈ "+fmt(gp);
+  calcCard("Госпошлина — расчёт", line, "≈ "+fmt(gp), "ст. 333.19 НК РФ",
+    "Ориентировочно, для судов общей юрисдикции и мировых судей. Сумма округлена до рубля. Возможны льготы (ст. 333.36 НК РФ); по искам о взыскании алиментов истец госпошлину не платит. Для арбитражных судов ставки иные (ст. 333.21 НК РФ).", extra);
+}
+
+/* Алименты (ст. 81 СК РФ) */
+function computeAlim(){
+  const income=num("al-income");
+  if(!income||income<=0){ botText("Укажите доход числом больше нуля."); return; }
+  const k=val("al-kids");
+  const share = k==="1"?0.25 : k==="2"?(1/3) : 0.5;
+  const pct = k==="1"?"1/4 (25%)" : k==="2"?"1/3 (≈33%)" : "1/2 (50%)";
+  const amount=Math.round(income*share);
+  pending.description = "Алименты: доход "+fmt(income)+", "+(k==="3"?"3 и более детей":(k+" реб."))+" → "+pct+" ≈ "+fmt(amount)+"/мес";
+  calcCard("Алименты — расчёт", "Доля от дохода: "+pct, "≈ "+fmt(amount)+" / мес", "ст. 81 СК РФ",
+    "Ориентировочно. Доля удерживается из дохода после налогов. Суд может изменить размер с учётом обстоятельств (ст. 81 СК РФ) или назначить выплату в твёрдой сумме (ст. 83 СК РФ). Если дети от разных родителей — расчёт иной.");
+}
+
+/* Госпошлина: арбитраж (ст. 333.21 НК РФ, ред. с 09.2024) */
+function gpArb(x){
+  if(x<=100000) return 10000;
+  if(x<=1000000) return 10000 + 0.05*(x-100000);
+  if(x<=10000000) return 55000 + 0.03*(x-1000000);
+  if(x<=50000000) return 325000 + 0.01*(x-10000000);
+  return Math.min(725000 + 0.005*(x-50000000), 10000000);
+}
+function gpArbFormula(x){
+  if(x<=100000) return "Фиксированно: 10 000 ₽";
+  if(x<=1000000) return "10 000 ₽ + 5% от суммы свыше 100 000 ₽";
+  if(x<=10000000) return "55 000 ₽ + 3% от суммы свыше 1 000 000 ₽";
+  if(x<=50000000) return "325 000 ₽ + 1% от суммы свыше 10 000 000 ₽";
+  return "725 000 ₽ + 0,5% свыше 50 000 000 ₽ (не более 10 000 000 ₽)";
+}
+function computeArb(){
+  const type=val("ab-type");
+  let gp=0, line="", extra="";
+  if(type==="imushch"||type==="prikaz"){
+    const x=num("ab-sum");
+    if(!x||x<=0){ botText("Укажите цену иска числом больше нуля."); return; }
+    const base=gpArb(x);
+    gp = type==="prikaz" ? Math.max(Math.round(base*0.5),8000) : Math.round(base);
+    line = (type==="prikaz"?"Судебный приказ":"Имущественный иск")+" (арбитраж), цена иска "+fmt(x);
+    extra = (type==="prikaz"?"50% от госпошлины по иску, но не менее 8 000 ₽ · ":"")+gpArbFormula(x);
+  } else {
+    const who=val("ab-istec");
+    gp = who==="org"?50000:15000;
+    line = "Неимущественный иск (арбитраж), "+(who==="org"?"организация":"физлицо/ИП");
+    extra = "Фиксированная ставка";
+  }
+  pending.description = line+" → госпошлина ≈ "+fmt(gp);
+  calcCard("Госпошлина в арбитраж — расчёт", line, "≈ "+fmt(gp), "ст. 333.21 НК РФ",
+    "Ориентировочно, для арбитражных судов. Сумма округлена до рубля. По судебному приказу — не менее 8 000 ₽. При подаче должником заявления о собственном банкротстве госпошлина не взимается.", extra);
+}
+
+/* Неустойка / пени (договорная, ст. 330 ГК РФ) */
+function computePeni(){
+  const sum=num("pn-sum");
+  if(!sum||sum<=0){ botText("Укажите сумму долга числом больше нуля."); return; }
+  const rate=parseFloat((val("pn-rate")||"").replace(",","."));
+  if(!rate||rate<=0){ botText("Укажите ставку неустойки, например 0,1 % в день."); return; }
+  const type=val("pn-rate-type");
+  const from=val("pn-from"), to=val("pn-to");
+  if(!from||!to){ botText("Укажите период просрочки: дату начала и дату окончания."); return; }
+  const d0=new Date(from), d1=new Date(to);
+  let days=Math.round((d1-d0)/86400000);
+  if(isNaN(days)||days<0){ botText("Дата окончания должна быть позже даты начала."); return; }
+  if(days===0) days=1;
+  const perDay = type==="year" ? rate/365 : rate;
+  const amount = sum * (perDay/100) * days;
+  const rateLabel = type==="year" ? (rate.toLocaleString("ru-RU")+"% годовых") : (rate.toLocaleString("ru-RU")+"% в день");
+  const perDayStr = perDay.toLocaleString("ru-RU",{maximumFractionDigits:4});
+  pending.description = "Неустойка: долг "+fmt(sum)+", ставка "+rateLabel+", период "+from+"…"+to+" ("+days+" дн.) → ≈ "+fmt(amount);
+  calcCard("Неустойка — расчёт", "Долг "+fmt(sum)+" · "+rateLabel+" · "+days+" дн.", "≈ "+fmt(amount), "ст. 330 ГК РФ",
+    "Договорная неустойка: сумма × ставка × число дней просрочки. Это ориентир. Суд вправе уменьшить явно несоразмерную неустойку (ст. 333 ГК РФ). Законные проценты по ст. 395 ГК РФ считаются по ключевой ставке Банка России отдельно за каждый её период — это сделает юрист по актуальным данным.",
+    "Формула: "+fmt(sum)+" × "+perDayStr+"%/дн × "+days+" дн.");
+}
+
+/* Банкротство — экспресс-проверка */
+function computeBankr(){
+  const debt=num("bk-debt");
+  if(!debt||debt<=0){ botText("Укажите сумму долга числом больше нуля."); return; }
+  const overdue=val("bk-overdue")==="yes";
+  const ip=val("bk-ip");
+  const priv=val("bk-priv")==="yes";
+  const mfcRange = debt>=25000 && debt<=1000000;
+  let route, detail, ref;
+  if(mfcRange && (ip==="closed" || priv)){
+    route="Внесудебное (через МФЦ), бесплатно";
+    detail=(priv && ip!=="closed")
+      ? "Вы в льготной категории (пенсионер, пособия на детей или участник СВО) — внесудебное банкротство доступно даже при открытом исполнительном производстве, при соблюдении сроков."
+      : "Долг в пределах 25 000–1 000 000 ₽, исполнительное производство закрыто из-за отсутствия имущества — это основной путь для МФЦ. Процедура бесплатная и длится около 6 месяцев.";
+    ref="ст. 223.2 ФЗ «О банкротстве»";
+  } else if(debt>=500000 && debt<=1000000){
+    route="Судебное (арбитражный суд)";
+    detail="При долге от 500 000 ₽ и просрочке свыше 3 месяцев гражданин обязан подать заявление. Процедура платная (финансовый управляющий и расходы), но списывает почти любые долги."+(overdue?"":" Уточните срок просрочки.");
+    ref="ст. 213.4 ФЗ «О банкротстве»";
+  } else if(debt>1000000){
+    route="Судебное (арбитражный суд)";
+    detail="Долг свыше 1 000 000 ₽ — бесплатный путь через МФЦ недоступен, банкротство проходит через суд.";
+    ref="ст. 213.4 ФЗ «О банкротстве»";
+  } else if(mfcRange){
+    route="Судебное или дождаться закрытия ИП";
+    detail="Сумма подходит для МФЦ, но для бесплатного пути нужно закрытое исполнительное производство «нет имущества» либо льготный статус. Иначе остаётся судебный путь.";
+    ref="ст. 223.2 / 213.4 ФЗ «О банкротстве»";
+  } else {
+    route="Банкротство, скорее всего, не требуется";
+    detail="Долг меньше 25 000 ₽ — для внесудебного банкротства недостаточно, а судебное при такой сумме обычно нецелесообразно. Возможны другие решения: переговоры с кредиторами, реструктуризация.";
+    ref="ст. 223.2 ФЗ «О банкротстве»";
+  }
+  pending.description="Банкротство: долг "+fmt(debt)+", просрочка 3+ мес: "+(overdue?"да":"нет")+", ИП: "+(ip==="closed"?"закрыто":ip==="open"?"открыто":"не знаю")+", льгота: "+(priv?"да":"нет")+" → "+route;
+  calcCard("Банкротство — предварительная проверка", "Вероятный вариант:", route, ref,
+    detail+" Это ориентир, а не юридическое заключение: итог зависит от состава долгов, имущества и сделок за последние 3 года. Перед подачей стоит проконсультироваться с юристом.");
+}
+
+/* ===================== Прочие карточки/потоки ===================== */
+function checklistCard(title, intro, items){
+  const card=el("div",{class:"card"});
+  const seal=el("div",{class:"seal",style:{display:"flex",alignItems:"center",justifyContent:"center",color:"var(--gold)"}});
+  seal.append(svg("check"));
+  card.append(el("div",{class:"hd"}, seal, el("div",{class:"ti"},title), el("span",{class:"tag"},"чек-лист")));
+  if(intro) card.append(el("p",{},intro));
+  items.forEach(it=>{ const li=el("div",{class:"li"}); const ic=svg("check"); ic.style.color="var(--gold)"; li.append(ic, el("span",{},it)); card.append(li); });
+  card.append(el("div",{class:"disc"}, "Это общий ориентир. По вашей ситуации детали уточнит юрист."));
+  const row=el("div",{class:"row"}, el("div",{class:"wide"},card)); chat.append(row); scroll();
+}
+function openBooking(){ haptic("select"); userText("Запись на онлайн-консультацию"); pending.category="Запись на онлайн-консультацию"; pending.bookTime=""; pending.bookTopic=""; botText("Запишу вас на онлайн-консультацию к Валерию. Когда удобно? Напишите желаемый день и время."); setControls("bookTime"); }
+function catButton(node, onClick, isSub){
+  const b=el("button",{class:"cat",onclick:onClick});
+  if(isSub){ const ic=svg("chevron"); ic.style.width="14px"; ic.style.height="14px"; ic.style.color="var(--gold)"; b.append(ic); }
+  else { b.append(svg(node.ic||"file")); }
+  b.append(el("span",{style:{flex:"1"}}, node.label));
+  if(node.subs){ const ch=svg("chevron"); ch.style.width="15px"; ch.style.height="15px"; ch.style.color="var(--muted)"; b.append(ch); }
+  return b;
+}
+
+/* ===================== setControls ===================== */
+function setControls(s){
+  step=s; controls.innerHTML="";
+  syncBackButton();
+  if(s==="greeting"){
+    const grid=el("div",{class:"cats"});
+    const quick=el("div",{class:"quick"},
+      el("button",{class:"qbtn qbook",onclick:openBooking}, svg("calendar"), el("span",{},"Онлайн-консультация")),
+      el("button",{class:"qbtn qcalc",onclick:openCalcMenu}, svg("calc"), el("span",{},"Калькуляторы")));
+    CATS.forEach(c=> grid.append(catButton(c, ()=>chooseCategory(c), false)));
+    controls.append(quick, grid, inputRow("Опишите ситуацию своими словами…","",true));
+  }else if(s==="subs"){
+    const grid=el("div",{class:"cats"});
+    const back=el("button",{class:"cat",style:{flex:"1 1 100%",color:"var(--muted)"},onclick:()=>setControls("greeting")});
+    const bic=svg("arrowleft"); bic.style.width="15px"; bic.style.height="15px"; bic.style.color="var(--muted)"; back.append(bic, el("span",{},"Назад к разделам"));
+    grid.append(back);
+    ((curParent&&curParent.subs)||[]).forEach(sub=> grid.append(catButton(sub, ()=>chooseSub(sub), true)));
+    controls.append(grid, inputRow("Или опишите ситуацию своими словами…","",true));
+  }else if(s==="calcMenu"){
+    const grid=el("div",{class:"cats"});
+    const back=el("button",{class:"cat",style:{flex:"1 1 100%",color:"var(--muted)"},onclick:()=>setControls("greeting")});
+    const bic=svg("arrowleft"); bic.style.width="15px"; bic.style.height="15px"; bic.style.color="var(--muted)"; back.append(bic, el("span",{},"Назад к разделам"));
+    grid.append(back);
+    grid.append(catButton({label:"Госпошлина (общей юрисдикции)",ic:"landmark"}, ()=>openCalc("gosp"), false));
+    grid.append(catButton({label:"Госпошлина (арбитраж)",ic:"building"}, ()=>openCalc("arb"), false));
+    grid.append(catButton({label:"Неустойка и пени",ic:"percent"}, ()=>openCalc("peni"), false));
+    grid.append(catButton({label:"Алименты",ic:"user"}, ()=>openCalc("alim"), false));
+    grid.append(catButton({label:"Пройду ли банкротство",ic:"bank"}, ()=>openCalc("bankr"), false));
+    controls.append(grid, inputRow("Или опишите ситуацию своими словами…","",true));
+  }else if(s==="calcGosp"){
+    const form=el("div",{class:"form"});
+    const typeSel=el("select",{id:"gp-type"},
+      el("option",{value:"imushch"},"Имущественный иск (есть цена иска)"),
+      el("option",{value:"prikaz"},"Судебный приказ"),
+      el("option",{value:"neimushch"},"Неимущественный иск"),
+      el("option",{value:"brak"},"Расторжение брака"));
+    const sumWrap=el("div",{class:"fl",id:"gp-sum-wrap"}, el("label",{},"Цена иска, ₽"), el("input",{type:"number",id:"gp-sum",inputmode:"numeric",placeholder:"Например, 350000"}));
+    const istecSel=el("select",{id:"gp-istec"}, el("option",{value:"fiz"},"Физическое лицо"), el("option",{value:"org"},"Организация"));
+    const istecWrap=el("div",{class:"fl",id:"gp-istec-wrap",style:{display:"none"}}, el("label",{},"Кто подаёт"), istecSel);
+    form.append(el("div",{class:"fl"}, el("label",{},"Тип обращения"), typeSel), sumWrap, istecWrap);
+    const sync=()=>{ const v=typeSel.value; sumWrap.style.display=(v==="imushch"||v==="prikaz")?"flex":"none"; istecWrap.style.display=(v==="neimushch")?"flex":"none"; };
+    typeSel.addEventListener("change",sync); sync();
+    const go=el("button",{class:"cta full",onclick:computeGosp},"Рассчитать");
+    const sec=el("div",{class:"calc-actions"},
+      el("button",{class:"cta",onclick:leaveContact},"Оставить контакт"),
+      el("button",{class:"cta2",onclick:()=>setControls("calcMenu")},"Назад"));
+    controls.append(form, go, el("div",{style:{height:"8px"}}), sec);
+  }else if(s==="calcArb"){
+    const form=el("div",{class:"form"});
+    const typeSel=el("select",{id:"ab-type"},
+      el("option",{value:"imushch"},"Имущественный иск (есть цена иска)"),
+      el("option",{value:"prikaz"},"Судебный приказ"),
+      el("option",{value:"neimushch"},"Неимущественный иск"));
+    const sumWrap=el("div",{class:"fl",id:"ab-sum-wrap"}, el("label",{},"Цена иска, ₽"), el("input",{type:"number",id:"ab-sum",inputmode:"numeric",placeholder:"Например, 1500000"}));
+    const istecSel=el("select",{id:"ab-istec"}, el("option",{value:"org"},"Организация"), el("option",{value:"fiz"},"Физлицо / ИП"));
+    const istecWrap=el("div",{class:"fl",id:"ab-istec-wrap",style:{display:"none"}}, el("label",{},"Кто подаёт"), istecSel);
+    form.append(el("div",{class:"fl"}, el("label",{},"Тип обращения"), typeSel), sumWrap, istecWrap);
+    const sync=()=>{ const v=typeSel.value; sumWrap.style.display=(v==="imushch"||v==="prikaz")?"flex":"none"; istecWrap.style.display=(v==="neimushch")?"flex":"none"; };
+    typeSel.addEventListener("change",sync); sync();
+    const go=el("button",{class:"cta full",onclick:computeArb},"Рассчитать");
+    const sec=el("div",{class:"calc-actions"},
+      el("button",{class:"cta",onclick:leaveContact},"Оставить контакт"),
+      el("button",{class:"cta2",onclick:()=>setControls("calcMenu")},"Назад"));
+    controls.append(form, go, el("div",{style:{height:"8px"}}), sec);
+  }else if(s==="calcPeni"){
+    const form=el("div",{class:"form"});
+    form.append(el("div",{class:"fl"}, el("label",{},"Сумма долга, ₽"), el("input",{type:"number",id:"pn-sum",inputmode:"numeric",placeholder:"Например, 500000"})));
+    const rt=el("select",{id:"pn-rate-type"}, el("option",{value:"day"},"% в день"), el("option",{value:"year"},"% годовых"));
+    form.append(
+      el("div",{class:"fl"}, el("label",{},"Ставка неустойки"), el("input",{type:"number",id:"pn-rate",inputmode:"decimal",step:"0.01",placeholder:"Например, 0,1"})),
+      el("div",{class:"fl"}, el("label",{},"Тип ставки"), rt));
+    const today=new Date().toISOString().slice(0,10);
+    form.append(
+      el("div",{class:"fl"}, el("label",{},"Просрочка с"), el("input",{type:"date",id:"pn-from"})),
+      el("div",{class:"fl"}, el("label",{},"по"), el("input",{type:"date",id:"pn-to",value:today})));
+    const go=el("button",{class:"cta full",onclick:computePeni},"Рассчитать");
+    const sec=el("div",{class:"calc-actions"},
+      el("button",{class:"cta",onclick:leaveContact},"Оставить контакт"),
+      el("button",{class:"cta2",onclick:()=>setControls("calcMenu")},"Назад"));
+    controls.append(form, go, el("div",{style:{height:"8px"}}), sec);
+  }else if(s==="calcAlim"){
+    const form=el("div",{class:"form"});
+    form.append(el("div",{class:"fl"}, el("label",{},"Ежемесячный доход плательщика (после налогов), ₽"), el("input",{type:"number",id:"al-income",inputmode:"numeric",placeholder:"Например, 80000"})));
+    const kids=el("select",{id:"al-kids"}, el("option",{value:"1"},"1 ребёнок"), el("option",{value:"2"},"2 детей"), el("option",{value:"3"},"3 и более"));
+    form.append(el("div",{class:"fl"}, el("label",{},"Количество детей"), kids));
+    const go=el("button",{class:"cta full",onclick:computeAlim},"Рассчитать");
+    const sec=el("div",{class:"calc-actions"},
+      el("button",{class:"cta",onclick:leaveContact},"Оставить контакт"),
+      el("button",{class:"cta2",onclick:()=>setControls("calcMenu")},"Назад"));
+    controls.append(form, go, el("div",{style:{height:"8px"}}), sec);
+  }else if(s==="calcBankr"){
+    const form=el("div",{class:"form"});
+    form.append(el("div",{class:"fl"}, el("label",{},"Общая сумма долгов, ₽"), el("input",{type:"number",id:"bk-debt",inputmode:"numeric",placeholder:"Например, 600000"})));
+    const ov=el("select",{id:"bk-overdue"}, el("option",{value:"yes"},"Да, больше 3 месяцев"), el("option",{value:"no"},"Нет или меньше"));
+    form.append(el("div",{class:"fl"}, el("label",{},"Просрочка по платежам"), ov));
+    const ipsel=el("select",{id:"bk-ip"}, el("option",{value:"closed"},"Закрыто приставами «нет имущества»"), el("option",{value:"open"},"Открыто / идёт"), el("option",{value:"unknown"},"Не знаю"));
+    form.append(el("div",{class:"fl"}, el("label",{},"Исполнительное производство у приставов"), ipsel));
+    const pr=el("select",{id:"bk-priv"}, el("option",{value:"no"},"Нет"), el("option",{value:"yes"},"Пенсионер / пособия на детей / СВО"));
+    form.append(el("div",{class:"fl"}, el("label",{},"Особый статус"), pr));
+    const go=el("button",{class:"cta full",onclick:computeBankr},"Проверить");
+    const sec=el("div",{class:"calc-actions"},
+      el("button",{class:"cta",onclick:leaveContact},"Оставить контакт"),
+      el("button",{class:"cta2",onclick:()=>setControls("calcMenu")},"Назад"));
+    controls.append(form, go, el("div",{style:{height:"8px"}}), sec);
+  }else if(s==="intake"){
+    controls.append(inputRow("Опишите детали…","",true));
+  }else if(s==="assessing"){
+    controls.append(inputRow("Подождите…","",false));
+  }else if(s==="postAssess"){
+    const wrap=el("div",{class:"btns"});
+    wrap.append(el("button",{class:"cta",onclick:leaveContact},"Оставить контакт"),
+                el("button",{class:"cta2",onclick:()=>{ haptic(); botText("Опишите вопрос или уточните детали — обновлю оценку."); setControls("intake"); }},"Ещё вопрос"));
+    controls.append(wrap);
+  }else if(s==="postChecklist"){
+    const wrap=el("div",{class:"btns"});
+    wrap.append(el("button",{class:"cta",onclick:leaveContact},"Оставить контакт"),
+                el("button",{class:"cta2",onclick:()=>setControls("subs")},"К разделу"));
+    controls.append(wrap);
+  }else if(s==="bookTime"){
+    controls.append(inputRow("Желаемые день и время (например: завтра после 18:00)","",true));
+  }else if(s==="bookTopic"){
+    controls.append(inputRow("Тема вопроса (или «—»)","",true));
+  }else if(s==="contactName"){
+    controls.append(inputRow("Ваше имя", TGUSER.name, true));
+  }else if(s==="contactInfo"){
+    controls.append(inputRow("Телефон, Telegram или email", TGUSER.username, true));
+  }else if(s==="done"){
+    controls.append(el("button",{class:"cta2 full",onclick:reset},"Новый диалог"));
+  }
+}
+
+/* ===================== Старт ===================== */
+function greet(){
+  const hi = TGUSER.first ? ("Здравствуйте, "+TGUSER.first+"! ") : "Здравствуйте! ";
+  botText(hi+"Я — помощник Валерия Тропина, юриста для бизнеса с 25-летней практикой. Опишите ситуацию или выберите раздел: дам предварительную оценку и передам обращение Валерию.");
+}
+greet();
+setControls("greeting");
+</script>
+</body>
+</html>
